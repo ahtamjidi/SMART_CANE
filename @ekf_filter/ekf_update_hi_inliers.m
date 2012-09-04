@@ -15,7 +15,7 @@
 %   to appear in Journal of Field Robotics, October 2010.
 
 %-----------------------------------------------------------------------
-% Authors:  Javier Civera -- jcivera@unizar.es 
+% Authors:  Javier Civera -- jcivera@unizar.es
 %           J. M. M. Montiel -- josemari@unizar.es
 
 % Robotics, Perception and Real Time Group
@@ -52,7 +52,14 @@ for i=1:length( features_info )
     
 end
 
-R = eye(length(z));
+R_z = eye(length(z));
+if ~isempty(z)
+    [z_dpose,h_dpose,H_dpose,R_dpose] = observe_dpose(filter.x_k_k);
+    R_agg = blkdiag(R_z,R_dpose);
+    H_agg = [H;[H_dpose,zeros(7,size(H,2)-13)]];
+    z_agg = [z;z_dpose];
+    h_agg = [h;h_dpose];
+    [ filter.x_k_k, filter.p_k_k ] = update( filter.x_k_k, filter.p_k_k, H_agg,...
+        R_agg, z_agg, h_agg );
+end
 
-[ filter.x_k_k, filter.p_k_k ] = update( filter.x_k_k, filter.p_k_k, H,...
-    R, z, h );

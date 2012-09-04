@@ -19,14 +19,51 @@
 %           J. M. M. Montiel -- josemari@unizar.es
 
 % Robotics, Perception and Real Time Group
-% Aragón Institute of Engineering Research (I3A)
+% Aragï¿½n Institute of Engineering Research (I3A)
 % Universidad de Zaragoza, 50018, Zaragoza, Spain
 % Date   :  May 2010
 %-----------------------------------------------------------------------
 
-function [ f, features_info ] = ekf_prediction( f, features_info )
+function filter = ekf_update_li_inliers( filter, features_info )
 
-% [ f.x_k_km1, f.p_k_km1 ] = predict_state_and_covariance( f.x_k_k, f.p_k_k, f.type, f.std_a, f.std_alpha );
+% mount vectors and matrices for the update
+z = [];
+h = [];
+H = [];
+%%% TAMADD DEBUG
+dbg_low_innovation_count=0;
+for i=1:length( features_info )
+    if features_info(i).low_innovation_inlier == 1
+        dbg_low_innovation_count = dbg_low_innovation_count+1;
+    end
+    
+end
+% disp(['dbg_high_innovation_count = ',num2str(dbg_low_innovation_count)]);
 
-[ f.x_k_km1, f.p_k_km1 ] = predict_state_and_covariance_vel( f.x_k_k, f.p_k_k, f.type, f.std_a, f.std_alpha );
-% [ f.x_k_km1, f.p_k_km1 ] = predict_state_and_covariance_veloc( f.x_k_k, f.p_k_k, f.type, f.std_a, f.std_alpha );
+%%%
+
+for i=1:length( features_info )
+    
+    if features_info(i).low_innovation_inlier == 1
+        z = [z; features_info(i).z(1); features_info(i).z(2)];
+        h = [h; features_info(i).h(1); features_info(i).h(2)];
+        H = [H; features_info(i).H];
+    end
+    
+end
+
+R = eye(length(z));
+
+[z_dpose,h_dpose,H_dpose,R_dpose] = observe_dpose(filter.x_k_km1);
+R_agg = blkdiag(R_z,R_dpose);
+H_agg = [H;[H_dpose,zeros(7,size(H,2)-7)]];
+z_agg = [z;z_dpose];
+h_agg = [h;h_dpose];
+
+
+
+
+
+[ filter.x_k_k, filter.p_k_k ] = update( filter.x_k_km1, filter.p_k_km1, H_agg,...
+    R_agg, z_agg, h_agg
+);

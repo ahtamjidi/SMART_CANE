@@ -99,7 +99,7 @@ if strcmp(myCONFIG.FLAGS.FEATURE_EXTRACTOR,'SIFT')
     
     
     
-    UV_GoodFeaturesToInitialize = RANSAC_STAT.GoodFrames2'; %%% For Knn we need the observations to be row vectors
+    UV_GoodFeaturesToInitialize = RANSAC_STAT.GoodFrames2(1:2,:)'; %%% For Knn we need the observations to be row vectors
     XYZ_GoodFeaturesToInitialize = op_pset2; %%%
     DESCRIPTOR_GoodFeaturesToInitialize = RANSAC_STAT.GoodDescriptor1;
 %     NS = createns(UV_GoodFeaturesToInitialize); %% the input to createns should be in this way X=[[u1,v1];[u2,v2],...] each data in a row
@@ -187,7 +187,8 @@ end
 %     end
 %     load(scanNameSIFT1,'SCAN_SIFT');
 %     load(RANSAC_RESULT,'matches')
-%     UV_GoodFeaturesToInitialize = SCAN_SIFT.SCALE_ORIENT_POS(1:2,matches(1,:))'; %%% For Knn we need the observations to be row vectors
+%     UV_GoodFeaturesToInitialize =
+%     SCAN_SIFT.SCALE_ORIENT_POS(1:2,matches(1,:))'; %%% For Knn we need the observations to be row vectors
 %     XYZ_GoodFeaturesToInitialize = SCAN_SIFT.XYZ_DATA(:,matches(1,:)); %%%
 %     DESCRIPTOR_GoodFeaturesToInitialize = SCAN_SIFT.Descriptor(:,matches(1,:));
 % %     NS = createns(UV_GoodFeaturesToInitialize); %% the input to createns should be in this way X=[[u1,v1];[u2,v2],...] each data in a row

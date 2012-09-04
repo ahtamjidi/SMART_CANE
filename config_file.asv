@@ -13,14 +13,14 @@ end
 % myCONFIG.PATH.DATA_FOLDER = '/home/axtamjidi/SR4000/eitlog/';
 
 % myCONFIG.PATH.DATA_FOLDER = '/home/axtamjidi/SR4000/square/';
-myCONFIG.PATH.SOURCE_FOLDER = 'D:\PM_analysis\KeyFrames\'; %% exp3
-myCONFIG.PATH.KEYFRAMES_FOLDER = [myCONFIG.PATH.SOURCE_FOLDER,'\KeyFrames\']; %% exp3
-myCONFIG.PATH.DATA_FOLDER = 'D:\PM_analysis\KeyFrames\'; %% exp3
+myCONFIG.PATH.SOURCE_FOLDER = 'D:\August_30\second_floor_not_square_150\'; %% exp3
+myCONFIG.PATH.KEYFRAMES_FOLDER = [myCONFIG.PATH.SOURCE_FOLDER,'KeyFrames\']; %% exp3
+myCONFIG.PATH.DATA_FOLDER = myCONFIG.PATH.KEYFRAMES_FOLDER; %% exp3
 
 myCONFIG.PATH.AVI_OUTPUT = [myCONFIG.PATH.DATA_FOLDER,'/aviOutput/result11.avi'];
 myCONFIG.IDX.idxCam = 1;
-myCONFIG.STEP.START = 1;
-myCONFIG.STEP.END = 400;data_file_counting(myCONFIG.PATH.DATA_FOLDER,'d1');
+myCONFIG.STEP.START = 3;
+myCONFIG.STEP.END = data_file_counting(myCONFIG.PATH.SOURCE_FOLDER,'d1');
 myCONFIG.FLAGS.GICP_CAM_ID = -1; %%% -1 means whole laser data is fed into GICP
 myCONFIG.FLAGS.EST_METHOD = '1PRE'; %%% ( 1PRE = 1Point RANSAC | PURE_EKF = pure ekf. no feature management)
 myCONFIG.FLAGS.MOTION_INPUT='RANSAC'; %%% 'GT' == ground truth -- 'RANSAC' == RANSAC
@@ -33,15 +33,18 @@ myCONFIG.FLAGS.CONFIDENCE_MAP = 0; % if 0 it means that confidence data is not a
 myCONFIG.FLAGS.INITIAL_ORIENTATION_COMPENSATION =1; %% (if 1 compensate the initial orientation)
 myCONFIG.FLAGS.GROUND_TRUTH_AVAILABLE =0; %% (if 1 it means that we have ground truth)
 myCONFIG.FLAGS.PLOT_RESULTS = 0; %% (if 1 plot the results otherwise no)
+myCONFIG.FLAGS.DEBUG = 0; %% if 1 enable debugging messages
 myCONFIG.FLAG.FEATURE_INITIALIZATION = 'PICK RANDOM SUBSET'; %% ('PICK RANDOM SUBSET'|'USE ALL FEATURES')
 myCONFIG.FLAG.ONLY_PREDICT = 0; %% if equal to 1 only do the prediction otherwise do complete EKF
-
+if myCONFIG.FLAGS.DATA_PLAY
+    myCONFIG.STEP.END = data_file_counting(myCONFIG.PATH.KEYFRAMES_FOLDER,'d1');
+end
 
 
 %%% determines whether to initialze a random subset of features or all
 %%% features availabe at each frame
 if ~initialization_done
-    create_data_folders(myCONFIG.PATH.DATA_FOLDER)
+    create_data_folders(myCONFIG.PATH.SOURCE_FOLDER)
     create_data_folders(myCONFIG.PATH.KEYFRAMES_FOLDER)
     initialization_done = 1;
     read_save_time_stamp()
@@ -75,7 +78,7 @@ function create_data_folders(path_)
 global myCONFIG
 current_path = pwd;
 create_folder(path_);
-eval(['cd ','''',myCONFIG.PATH.DATA_FOLDER,'''']);
+eval(['cd ','''',path_,'''']);
 create_folder('FeatureExtractionMatching');
 create_folder('images');
 create_folder('RANSAC_pose_shift');
@@ -85,6 +88,8 @@ create_folder('DataSnapshots');
 create_folder('FeaturePerformance');
 create_folder('OrientationData');
 create_folder('TimeStamp');
+create_folder('VelocityData');
+
 eval(['cd ','''',current_path,'''']);
 end
 %%
@@ -93,7 +98,7 @@ global myCONFIG
 if ~exist([myCONFIG.PATH.SOURCE_FOLDER,'/TimeStamp/TimeStamp.mat'],'file')
     
     
-    nDataFiles = data_file_counting(myCONFIG.PATH.DATA_FOLDER,'d1');
+    nDataFiles = data_file_counting(myCONFIG.PATH.SOURCE_FOLDER,'d1');
     time_stamp = zeros(2,nDataFiles);
     for i=1:nDataFiles
         %     source_data_file = sprintf('%s/d1_%04d.dat',source_folder,i);

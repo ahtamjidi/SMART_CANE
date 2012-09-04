@@ -38,6 +38,29 @@ if size(z,1)>0
 
     % updated state and covariance
     x_k_k = x_km1_k + K*( z - h );
+    if myCONFIG.FLAGS.DEBUG
+      temp = z - h;
+      temp = temp(end-6:end);
+      tmpq = q2e(temp)*180/pi;
+       disp('-------------------------');
+      cprintf('hyper',  'z-h =  [%f ,%f ,%f ,%f ,%f ,%f ,%f  ]\n',temp(1),...
+          temp(2),temp(3),temp(4),temp(5),temp(6),temp(7));
+     
+      temp = K*( z - h );
+      tmp = temp(end-6:end);
+      tmpq = q2e(tmp)*180/pi;
+       cprintf('err',  'k(z-h) =  [%f ,%f ,%f ,%f ,%f ,%f ,%f  ]\n',tmp(1),...
+          tmp(2),tmp(3),tmp(4),tmp(5),tmp(6),tmp(7));
+     
+      disp('-------------------------');
+      
+      %    cprintf('hyper',  'followed %s','by');
+%    cprintf('k',      '%f colored', 4);
+%    cprintf('-comment','& underlined');
+%    cprintf('err',    'elements\n');
+      
+      
+    end
     p_k_k = p_km1_k - K*S*K';
     p_k_k = 0.5*p_k_k + 0.5*p_k_k';
     % p_k_k = ( speye(size(p_km1_k,1)) - K*H )*p_km1_k;

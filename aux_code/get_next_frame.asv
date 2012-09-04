@@ -1,6 +1,7 @@
-function [current_v_, current_w_] = get_next_frame()
-persistent current_step_in_source  next_step_in_source
-persistent current_v current_w next_v next_w
+function  get_next_frame()
+% persistent current_step_in_source  next_step_in_source
+% persistent current_v current_w next_v next_w
+persistent spon_v spon_w 
 persistent threshold_dist threshold_orient
 persistent time_stamp
 global myCONFIG step_global
@@ -8,114 +9,156 @@ global myCONFIG step_global
 
 source_folder = myCONFIG.PATH.SOURCE_FOLDER; 
 destination_folder = myCONFIG.PATH.KEYFRAMES_FOLDER;
-time_elapsed = 0;
-dq_aggregate = [1;0;0;0];
-
-if isempty(current_step_in_source)
-    current_step_in_source = step_global - 1;
+% time_elapsed = 0;
+% dq_aggregate = [1;0;0;0];
+%     current_v = [0;0;0]; %% m/s
+%     current_w = [0;0;0];  %% rad/s
+if isexist(current_step_in_source)
+    current_step_in_source = step_global-1;
     %     next_step_in_source = 2;
-    current_v = [0;0;0]; %% m/s
-    current_w = [0;0;0];  %% rad/s
-    threshold_dist = 0.06; %% m
-    threshold_orient = 7*pi/180; %% rad
-    load([myCONFIG.PATH.SOURCE_FOLDER,'/TimeStamp/TimeStamp.mat'],'time_stamp');
-    [current_v,current_w,dq_aggregate,time_elapsed] = update_velocity_( current_step_in_source +1,...
-                                                         time_stamp,time_elapsed,...
-                                                         current_v,current_w,...
-                                                         dq_aggregate);
-end
-flag_next_found =0;
-next_step_in_source = current_step_in_source +1;
-predicted_dist = 0;
-predicted_orinetation_shift = 0;
-
-while ~flag_next_found
-    %% Dr Ye's scheme
-    %%% 1- see if the current frame will be used based on the velocities and
-    %%% other thresholds
-    time_difference = (time_stamp(1,next_step_in_source) - time_stamp(1,next_step_in_source-1))*0.001; %% second
-%     time_elapsed = time_elapsed + time_difference;
-    predicted_dist = predicted_dist + current_v * time_difference;
-    predicted_orinetation_shift = predicted_orinetation_shift + q2e(v2q(current_w * time_difference));
-    if (norm(predicted_dist)<threshold_dist) && (norm(predicted_orinetation_shift) < threshold_orient)
-        [current_v,current_w,dq_aggregate,time_elapsed] = update_velocity_(next_step_in_source ,...
-                                                 time_stamp,time_elapsed,...
-                                                 current_v,current_w,...
-                                                 dq_aggregate);
-        next_step_in_source = next_step_in_source + 1
-        continue
-    end
-    flag_next_found =1;
-    %%%%%%%% COPY THE XYZ_DATA AND SIFT_FEATURE FILES FORM SOURCE
-    %%%%%%%% TO DESTINATION
-%     xyz_file_in_source = sprintf('%s/xyz_data/xyz_%04d.mat',...
-%         source_folder,next_step_in_source);
-%     SIFT_features_file_in_source = sprintf('%s/FeatureExtractionMatching/SIFT_result%04d.mat',...
-%         source_folder,next_step_in_source);
-    
-%     xyz_file_in_destination = sprintf('%s/xyz_data/xyz%04d.mat',...
-%         destination_folder,step_global);
-%     SIFT_features_file_in_destination = sprintf('%s/FeatureExtractionMatching/SIFT_result%04d.mat',...
-%         destination_folder,step_global);
-    
-%     copyfile(xyz_file_in_source,xyz_file_in_destination)
-    copyfile(SIFT_features_file_in_source,SIFT_features_file_in_destination)
- 
-    %%%%%%%% COPY RANSAC FILE TO DESTINATINO AND DELETE IT IN THE
-    %%%%%%%% SOURCE
-    RANSAC_file_in_destination = sprintf('%s/RANSAC_pose_shift_dr_Ye/RANSAC_RESULT_%d_%d.mat',...
-        destination_folder,step_global-1,step_global);
-    copyfile(RANSAC_file_in_source,RANSAC_file_in_destination)
-    
-    save(RANSAC_file_in_destination,'idx_key_frame_in_source','prev_key_frame_source','-append')
-    delete(RANSAC_file_in_source)
-    
-    
-    %%%%%%%% COPY DATA FILE
-    source_data_file = sprintf('%s/d1_%04d.dat',source_folder,next_step_in_source);
-    destination_data_file = sprintf('%s/d1_%04d.dat',destination_folder,step_global);
+%     spon_v = [0;0;0]; %% m/s
+%     spon_w = [0;0;0];  %% rad/s
+%     threshold_dist = 0.06; %% m
+%     threshold_orient = 7*pi/180; %% rad
+%     load([myCONFIG.PATH.SOURCE_FOLDER,'/TimeStamp/TimeStamp.mat'],'time_stamp');
+%     [current_v,current_w,dq_aggregate,time_elapsed,...
+%                       spon_v,spon_w] = update_velocity_( current_step_in_source +1,...
+%                                                          time_stamp,time_elapsed,...
+%                                                          current_v,current_w,...
+%                                                          dq_aggregate);
+%                                                      
+    source_data_file = sprintf('%s/d1_%04d.dat',source_folder,step_global-1);
+    destination_data_file = sprintf('%s/d1_%04d.dat',destination_folder,step_global-1);
     copyfile(source_data_file,destination_data_file)
  
-    destination_velocity_file = sprintf('%s/vel_%04d.dat',destination_folder,step_global);
-    save(destination_velocity_file,'current_v','current_w','dq_aggregate','time_elapsed');
+%     destination_velocity_file = sprintf('%s/vel_%04d.mat',[destination_folder,'VelocityData'],step_global-1);
+%     save(destination_velocity_file,'current_v','current_w','dq_aggregate','time_elapsed');
+                                                     
+                                                     
+                                                     
+end
+  current_step_in_source = step_global;
+    %     next_step_in_source = 2;
+%     spon_v = [0;0;0]; %% m/s
+%     spon_w = [0;0;0];  %% rad/s
+%     threshold_dist = 0.06; %% m
+%     threshold_orient = 7*pi/180; %% rad
+%     load([myCONFIG.PATH.SOURCE_FOLDER,'/TimeStamp/TimeStamp.mat'],'time_stamp');
+%     [current_v,current_w,dq_aggregate,time_elapsed,...
+%                       spon_v,spon_w] = update_velocity_( current_step_in_source +1,...
+%                                                          time_stamp,time_elapsed,...
+%                                                          current_v,current_w,...
+%                                                          dq_aggregate);
+%                                                      
+    source_data_file = sprintf('%s/d1_%04d.dat',source_folder,step_global-1);
+    destination_data_file = sprintf('%s/d1_%04d.dat',destination_folder,step_global-1);
+    copyfile(source_data_file,destination_data_file)
+
+
+
+
+% flag_next_found =0;
+% next_step_in_source = current_step_in_source +1;
+% predicted_dist = 0;
+% predicted_orinetation_shift = 0;
+% 
+% while ~flag_next_found
+%     %% Dr Ye's scheme
+%     %%% 1- see if the current frame will be used based on the velocities and
+%     %%% other thresholds
+%     time_difference = (time_stamp(1,next_step_in_source) - time_stamp(1,next_step_in_source-1))*0.001; %% second
+% %     time_elapsed = time_elapsed + time_difference;
+%     predicted_dist = predicted_dist + spon_v * time_difference;
+%     predicted_orinetation_shift = predicted_orinetation_shift + q2e(v2q(spon_w * time_difference));
+% %     if (norm(predicted_dist)<threshold_dist) && (norm(predicted_orinetation_shift) < threshold_orient)
+%         [current_v,current_w,dq_aggregate,time_elapsed,...
+%              spon_v,spon_w] = update_velocity_(next_step_in_source ,...
+%                                                  time_stamp,time_elapsed,...
+%                                                  current_v,current_w,...
+%                                                  dq_aggregate);
+%         next_step_in_source = next_step_in_source + 1
+% %         continue
+% %     end
+%     current_step_in_source = next_step_in_source - 1
+%     flag_next_found =1;
+%     %%%%%%%% COPY THE XYZ_DATA AND SIFT_FEATURE FILES FORM SOURCE
+%     %%%%%%%% TO DESTINATION
+% %     xyz_file_in_source = sprintf('%s/xyz_data/xyz_%04d.mat',...
+% %         source_folder,next_step_in_source);
+% %     SIFT_features_file_in_source = sprintf('%s/FeatureExtractionMatching/SIFT_result%04d.mat',...
+% %         source_folder,next_step_in_source);
+%     
+% %     xyz_file_in_destination = sprintf('%s/xyz_data/xyz%04d.mat',...
+% %         destination_folder,step_global);
+% %     SIFT_features_file_in_destination = sprintf('%s/FeatureExtractionMatching/SIFT_result%04d.mat',...
+% %         destination_folder,step_global);
+%     
+% %     copyfile(xyz_file_in_source,xyz_file_in_destination)
+% %     copyfile(SIFT_features_file_in_source,SIFT_features_file_in_destination)
+%  
+%     %%%%%%%% COPY RANSAC FILE TO DESTINATINO AND DELETE IT IN THE
+%     %%%%%%%% SOURCE
+% %     RANSAC_file_in_source = sprintf('%s/RANSAC_pose_shift_dr_Ye/RANSAC_RESULT_%d_%d.mat',source_folder,idx_key_frame_in_source,i);
+% %     RANSAC_file_in_destination = sprintf('%s/RANSAC_pose_shift_dr_Ye/RANSAC_RESULT_%d_%d.mat',...
+% %         destination_folder,step_global-1,step_global);
+% %     copyfile(RANSAC_file_in_source,RANSAC_file_in_destination)
+% %     
+% %     save(RANSAC_file_in_destination,'idx_key_frame_in_source','prev_key_frame_source','-append')
+% %     delete(RANSAC_file_in_source)
+% %     
+%     
+%     %%%%%%%% COPY DATA FILE
+%     source_data_file = sprintf('%s/d1_%04d.dat',source_folder,next_step_in_source);
+%     destination_data_file = sprintf('%s/d1_%04d.dat',destination_folder,step_global);
+%     copyfile(source_data_file,destination_data_file)
+%  
+%     destination_velocity_file = sprintf('%s/vel_%04d.mat',[destination_folder,'VelocityData'],step_global);
+%     save(destination_velocity_file,'current_v','current_w','dq_aggregate','time_elapsed');
 
     %     [dX_gt,dq_calc,R_RANSAC,State_RANSAC,RANSAC_STAT]=Calculate_V_Omega_RANSAC_dr_ye(idx_key_frame_in_source,i);
     %%% 2- if we have to drop this frame update (v,w)
     %%% 3-
     
     %% my Scheme
+% end
 end
-end
-function [current_v,current_w,dq_aggregate,time_elapsed] = update_velocity_(next_step_in_source,...
-                                                           time_stamp,time_elapsed,...
-                                                           current_v,current_w,...
-                                                           dq_aggregate)
-pre_step = next_step_in_source-1 ;
-current_step = next_step_in_source;
-valid_RANSAC =0;
-while ~valid_RANSAC
-    [dX_gt,dq_calc,R,State_RANSAC,RANSAC_STAT]=Calculate_V_Omega_RANSAC_dr_ye(pre_step,current_step);
-    if State_RANSAC==1
-        valid_RANSAC =1;
-    else
-        pre_step = pre_step -1;
-    end
-    if pre_step < next_step_in_source - 4
-        disp('BAD FRAME FOR RANSAC')
-        break
-    end
-end
-
-if norm(dX_gt)>0.01
-time_difference = (time_stamp(1,current_step) - time_stamp(1,pre_step))*0.001;
-dq_aggregate = qprod(dq_aggregate,dq_calc);
-current_v = (current_v*time_elapsed+dX_gt)/(time_difference+time_elapsed); %% m/s average velocity
-[a_,u_] = q2au(dq_aggregate);
-a_dt = a_/(time_difference + time_elapsed);
-current_w = a_dt*u_; %% rotation vector rate
-time_elapsed = time_difference+time_elapsed;
-end
-end
+% function [current_v,current_w,...
+%           dq_aggregate,time_elapsed,...
+%           spon_v,spon_w] = update_velocity_(next_step_in_source,...
+%                                                            time_stamp,time_elapsed,...
+%                                                            current_v,current_w,...
+%                                                            dq_aggregate)
+% pre_step = next_step_in_source-1 ;
+% current_step = next_step_in_source;
+% valid_RANSAC =0;
+% while ~valid_RANSAC
+%     [dX_gt,dq_calc,R,State_RANSAC,RANSAC_STAT]=Calculate_V_Omega_RANSAC_dr_ye(pre_step,current_step);
+%     if State_RANSAC==1
+%         valid_RANSAC =1;
+%     else
+%         pre_step = pre_step -1;
+%     end
+%     if pre_step < next_step_in_source - 4
+%         disp('BAD FRAME FOR RANSAC')
+%         break
+%     end
+% end
+% time_difference = (time_stamp(1,current_step) - time_stamp(1,pre_step))*0.001;
+% spon_v = dX_gt/time_difference;
+% 
+% [a_spon,u_spon] = q2au(dq_calc);
+% spon_w = (a_spon/(time_difference))*u_spon;
+% 
+% if norm(dX_gt)>0.01
+% 
+% dq_aggregate = qprod(dq_aggregate,dq_calc)';
+% current_v = (current_v*time_elapsed+dX_gt)/(time_difference+time_elapsed); %% m/s average velocity
+% [a_,u_] = q2au(dq_aggregate);
+% a_dt = a_/(time_difference + time_elapsed);
+% current_w = a_dt*u_; %% rotation vector rate
+% time_elapsed = time_difference+time_elapsed;
+% end
+% end
 
 %
 % % idxRange = [1 100];

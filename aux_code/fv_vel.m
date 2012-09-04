@@ -15,18 +15,60 @@
 %   to appear in Journal of Field Robotics, October 2010.
 
 %-----------------------------------------------------------------------
-% Authors:  Javier Civera -- jcivera@unizar.es 
+% Authors:  Javier Civera -- jcivera@unizar.es
 %           J. M. M. Montiel -- josemari@unizar.es
 
 % Robotics, Perception and Real Time Group
-% Aragón Institute of Engineering Research (I3A)
+% Aragï¿½n Institute of Engineering Research (I3A)
 % Universidad de Zaragoza, 50018, Zaragoza, Spain
 % Date   :  May 2010
 %-----------------------------------------------------------------------
 
-function [ f, features_info ] = ekf_prediction( f, features_info )
+function [X_k_km1,varargout]=fv_vel(X_k_k,delta_t, type, std_a, std_alpha)
 
-% [ f.x_k_km1, f.p_k_km1 ] = predict_state_and_covariance( f.x_k_k, f.p_k_k, f.type, f.std_a, f.std_alpha );
 
-[ f.x_k_km1, f.p_k_km1 ] = predict_state_and_covariance_vel( f.x_k_k, f.p_k_k, f.type, f.std_a, f.std_alpha );
-% [ f.x_k_km1, f.p_k_km1 ] = predict_state_and_covariance_veloc( f.x_k_k, f.p_k_k, f.type, f.std_a, f.std_alpha );
+rW =X_k_k(1:3,1);
+qWR=X_k_k(4:7,1);
+vW =X_k_k(8:10,1);
+wW =X_k_k(11:13,1);
+
+if strcmp(type,'constant_orientation')
+    wW = [0 0 0]';
+    X_k_km1=[rW+vW*delta_t;
+        qWR;
+        vW;
+        wW];
+end
+
+if strcmp(type,'constant_position')
+    vW = [0 0 0]';
+    X_k_km1=[rW;
+        reshape(qprod(qWR,v2q(wW*delta_t)),4,1);
+        vW;
+        wW];
+end
+
+if strcmp(type,'constant_position_and_orientation')
+    vW = [0 0 0]';
+    wW = [0 0 0]';
+    X_k_km1=[rW;
+        qWR;
+        vW;
+        wW];
+end
+
+if strcmp(type,'constant_position_and_orientation_location_noise')
+    vW = [0 0 0]';
+    wW = [0 0 0]';
+    X_k_km1=[rW;
+        qWR;
+        vW;
+        wW];
+end
+
+if strcmp(type,'constant_velocity')
+    X_k_km1=[rW+vW*delta_t;
+        reshape(qprod(qWR,v2q(wW*delta_t)),4,1);
+        vW;
+        wW];
+end
