@@ -10,8 +10,8 @@ if nargin>2
 else
     Flag_Plane_Fitting = 0;
 end
-[dT1,dq1,~]=Calculate_V_Omega_RANSAC_dr_ye(snap_step-1,snap_step);
-[dT2,dq2,~]=Calculate_V_Omega_RANSAC_dr_ye(snap_step-2,snap_step-1);
+[dT1,dq1,tem]=Calculate_V_Omega_RANSAC_dr_ye(snap_step-1,snap_step);
+[dT2,dq2,temp]=Calculate_V_Omega_RANSAC_dr_ye(snap_step-2,snap_step-1);
 
     
 load([myCONFIG.PATH.DATA_FOLDER,relative_path,'/snapshot',num2str(snap_step),'.mat'])

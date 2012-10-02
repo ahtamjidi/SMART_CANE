@@ -46,7 +46,6 @@ global myCONFIG
 sequencePath = myCONFIG.PATH.DATA_FOLDER;
 % dbstop if all error
 cam = initialize_cam;
-step_global = myCONFIG.STEP.START;
 
 % Set plot windows
 set_plots;
@@ -64,7 +63,6 @@ end
 lastIm = myCONFIG.STEP.END;
 warning off
 % Initialize state vector and covariance
-get_next_frame()
 [x_k_k, p_k_k] = initialize_x_and_p(initIm);
 
 %%% ORIG
@@ -124,11 +122,11 @@ for step=initIm+1:lastIm
             %         eval(['snapshot',num2str(initIm)])
             try
                 
-                load([myCONFIG.PATH.DATA_FOLDER,'DataSnapshots/','snapshot',num2str(initIm+1),'.mat'])
-                load([myCONFIG.PATH.DATA_FOLDER,'DataSnapshots/','snapshot',num2str(initIm),'.mat'])
-                step = eval(['snapshot',num2str(initIm+1),'.step']);
-                features_info = eval(['snapshot',num2str(initIm),'.features_info']);
-                filter = eval(['snapshot',num2str(initIm),'.filter']);
+                %                 load([myCONFIG.PATH.DATA_FOLDER,'DataSnapshots/','snapshot',num2str(initIm+1),'.mat'])
+                %                 load([myCONFIG.PATH.DATA_FOLDER,'DataSnapshots/','snapshot',num2str(initIm),'.mat'])
+                %                 step = eval(['snapshot',num2str(initIm+1),'.step']);
+                %                 features_info = eval(['snapshot',num2str(initIm),'.features_info']);
+                %                 filter = eval(['snapshot',num2str(initIm),'.filter']);
                 
                 flagInitialized = 1;
             catch
@@ -138,9 +136,21 @@ for step=initIm+1:lastIm
         %         if norm(Calculate_V_Omega_RANSAC(step-1,step))>0.046
         %% DEBUG
         % Map management (adding and deleting features; and converting inverse depth to Euclidean)
-        get_next_frame()
-%         [dX_debug,dq_debug,R_dbg,State_RANSAC_dbg]=Calculate_V_Omega_RANSAC_dr_ye(step_global-2,step_global-1);
-%         if norm(dX_debug)>0.012
+% % % % % %         p_k_k_temp = get_p_k_k(filter);
+% % % % % %         if sqrt(norm([p_k_k_temp(1,1),p_k_k_temp(2,2),p_k_k_temp(3,3)]))>0.03
+% % % % % %              x_k_k_temp = get_x_k_k(filter);
+% % % % % %              
+% % % % % %              
+% % % % % % 
+% % % % % %             [x_k_k, p_k_k] = initialize_x_and_p_in_the_middle();
+% % % % % %                          x_k_k = x_k_k_temp((1:13));
+% % % % % %             sigma_a = 0.1; % standar deviation for linear acceleration noise
+% % % % % %             sigma_alpha = 0.1; % standar deviation for angular acceleration noise
+% % % % % %             sigma_image_noise = 1.0; %% 1.0 ORIGINAL VALUE ; % standar deviation for measurement noise
+% % % % % %             filter = ekf_filter( x_k_k, p_k_k, sigma_a, sigma_alpha, sigma_image_noise, 'constant_velocity' );
+% % % % % %             features_info = [];
+% % % % % %         end
+        
         if ~myCONFIG.FLAG.ONLY_PREDICT
             [ filter, features_info ] = map_management( filter, features_info, cam, im, min_number_of_features_in_image, step );
         end
@@ -164,7 +174,9 @@ for step=initIm+1:lastIm
             
             % Search for individually compatible matches
             features_info = search_IC_matches( filter, features_info, cam, im );
-
+            
+            
+            
             if sum([features_info.individually_compatible])>0
                 switch myCONFIG.FLAGS.EST_METHOD
                     case '1PRE'
@@ -183,18 +195,18 @@ for step=initIm+1:lastIm
                         % Partial update using low-innovation inliers
                         filter = ekf_update_li_inliers( filter, features_info );
                         
-%                         "Rescue" high-innovation inliers
+                        %                         "Rescue" high-innovation inliers
                         features_info = rescue_hi_inliers( filter, features_info, cam );
-%                         % % % % % % % % % % % % %                 StatData.nHighInlier = sum([features_info.high_innovation_inlier]);
-%                         Partial update using high-innovation inliers
+                        %                         % % % % % % % % % % % % %                 StatData.nHighInlier = sum([features_info.high_innovation_inlier]);
+                        %                         Partial update using high-innovation inliers
                         filter = ekf_update_hi_inliers( filter, features_info );
                         %%%
-%                         if rem(step_global,4)==0
-%                         [R_plane,T_plane] = plane_fit_to_data(step);
-%                         q_plane = R2q(R_plane');
-%                         filter = ekf_heading_update( filter, R_plane' );
-%                         end
-% % % % % % %                        features_info = disp_stat_feature(features_info,filter) ;
+                        %                         if rem(step_global,4)==0
+                        %                         [R_plane,T_plane] = plane_fit_to_data(step);
+                        %                         q_plane = R2q(R_plane');
+                        %                         filter = ekf_heading_update( filter, R_plane' );
+                        %                         end
+                        
                         
                     case 'PURE_EKF'
                         %%% TAMADD
@@ -250,7 +262,7 @@ for step=initIm+1:lastIm
             imMovie = getframe(gcf);
             movie = addframe( movie, imMovie );
         end
-%         end 
+        
         if myCONFIG.TMEP_CODE
             eval(['snapshot',num2str(step),'.features_info','= features_info;'])
             eval(['snapshot',num2str(step),'.filter','= filter;'])
@@ -272,7 +284,7 @@ for step=initIm+1:lastIm
         features_info = eval(['snapshot',num2str(step),'.features_info']);
         filter = eval(['snapshot',num2str(step),'.filter']);
         if step==initIm+1
-%                         [R,T] = plane_fit_to_data(initIm);
+            %             [R,T] = plane_fit_to_data(initIm);
             R=eye(3);
         end
         % % % % % % % % % % %         StatData = eval(['snapshot',num2str(step),'.StatData']);
@@ -302,20 +314,17 @@ for step=initIm+1:lastIm
                 stat_feat(6,j) = features_info(ind(j)).init_frame;
                 stat_feat([7,8,9],j) = features_info(ind(j)).Feature3d_in_code_coordinate;
                 stat_feat([10,11],j) = features_info(ind(j)).init_measurement;
-%                 if features_info(ind(j)).low_innovation_inlier | features_info(ind(j)).high_innovation_inlier
-%                     
-%                 end
                 
                 
             end
-% % % % % % % % % % % % % % % % % % % % %             feature_performance.stat_feat = stat_feat;
-% % % % % % % % % % % % % % % % % % % % %             feature_performance.active_features = numel([features_info.z])/2;
-% % % % % % % % % % % % % % % % % % % % %             feature_performance.size_map = numel(features_info);
-% % % % % % % % % % % % % % % % % % % % %             feature_performance.low_innovation_inlier = sum(stat_feat(4,:));
-% % % % % % % % % % % % % % % % % % % % %             feature_performance.high_innovation_inlier = sum(stat_feat(5,:));
-% % % % % % % % % % % % % % % % % % % % %             feature_performance.predicted_activity = mean(stat_feat(1,:));
-% % % % % % % % % % % % % % % % % % % % %             feature_performance.real_activity = mean(stat_feat(2,:));
-% % % % % % % % % % % % % % % % % % % % %             save([myCONFIG.PATH.DATA_FOLDER,'FeaturePerformance/','snapshot',num2str(step)],'feature_performance');
+            feature_performance.stat_feat = stat_feat;
+            feature_performance.active_features = numel([features_info.z])/2;
+            feature_performance.size_map = numel(features_info);
+            feature_performance.low_innovation_inlier = sum(stat_feat(4,:));
+            feature_performance.high_innovation_inlier = sum(stat_feat(5,:));
+            feature_performance.predicted_activity = mean(stat_feat(1,:));
+            feature_performance.real_activity = mean(stat_feat(2,:));
+            save([myCONFIG.PATH.DATA_FOLDER,'FeaturePerformance/','snapshot',num2str(step)],'feature_performance');
         end
         
         %%
@@ -335,7 +344,7 @@ for step=initIm+1:lastIm
         %         NormError(step - initIm)=norm(x_k_k_temp(1:3)-V);
         %         error_norm_euler(:,step - initIm) = abs(q2e(qprod(q,q2qc(x_k_k_temp(4:7)))));
         
-        if mod(step,100)==0 || step==myCONFIG.STEP.END 
+        if mod(step,100)==0 || step==myCONFIG.STEP.END
             figure(figure_debug)
             
             %             subplot(211)

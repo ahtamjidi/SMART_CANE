@@ -30,7 +30,7 @@ p_at_least_one_spurious_free = 0.99; % default value
 % RANSAC threshold should have a low value (less than the standard
 % deviation of the filter measurement noise); as high innovation points
 % will be later rescued
-threshold = get_std_z(filter);
+threshold = 3;get_std_z(filter);
 global step_global StatData
 n_hyp = 1000; % initial number of iterations, will be updated
 max_hypothesis_support = 0; % will be updated

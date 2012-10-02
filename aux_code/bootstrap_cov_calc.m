@@ -1,12 +1,12 @@
-function cov_pose_shift = bootstrap_cov_calc(idx1,idx2)
+function [cov_pose_shift,q_dpose,T_dpose] = bootstrap_cov_calc(idx1,idx2)
 % config_file
 global myCONFIG
-step_1 = 6;
-step_2 = 7;
+% step_1 = 6;
+% step_2 = 7;
 
 
 Dr_Ye_File = [myCONFIG.PATH.DATA_FOLDER,'/RANSAC_pose_shift_dr_Ye/',...
-    sprintf('RANSAC_RESULT_%d_%d.mat',idx1,idx2)];
+    sprintf('RANSAC_RESULT_%d_%d.mat',(idx1),(idx2))];
 % if DebugFlag || myCONFIG.FLAGS.RECALCULATE || (~myCONFIG.FLAGS.RECALCULATE && ~exist(Dr_Ye_File,'file'))
 %     %%%% if you want to recalculate or if you do not want but there is no file available, run the RANSAC
 %     [file1, err]=sprintf('%s/d1_%04d.dat',myCONFIG.PATH.DATA_FOLDER,stepPre);
@@ -25,6 +25,8 @@ Yb = op_pset2';
 R = rot;
 T = trans;
 q__ = R2q(R);
+q_dpose = q__;
+T_dpose = T;
 nData = size(op_pset1,2);
 sampleSize = min(40,floor(0.75*nData));
 nSamplePossible = factorial(nData)/(factorial(sampleSize)*factorial(nData - sampleSize));

@@ -36,6 +36,7 @@ J_sph2cart = [cos(elevation) * cos(azimuth)   -r * cos(elevation) * sin(azimuth)
     cos(elevation) * sin(azimuth)     r * cos(elevation) * cos(azimuth)   -r * sin(elevation) * sin(azimuth);...
     sin(elevation)                   0                                    r .* cos(elevation)              ];
 cov_spher = diag( [ (0.01/3)^2 , (0.24*pi/180/10)^2 .* [ 1 1 ] ]  );   %%% uncertaint of the range is 1cm and I assume the uncertsainty of the azimuth and elevation is equal
+
 %%% to sensor's angular resolution (0.24 degrees)
 cov_cart = J_sph2cart*cov_spher*J_sph2cart';
 end

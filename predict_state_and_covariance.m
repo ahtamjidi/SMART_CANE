@@ -29,7 +29,7 @@ persistent time_stamp
 global myCONFIG
 
 if isempty(time_stamp)
-    load([myCONFIG.PATH.SOURCE_FOLDER,'/TimeStamp/TimeStamp.mat'],'time_stamp')
+    load([myCONFIG.PATH.DATA_FOLDER,'/TimeStamp/TimeStamp.mat'],'time_stamp')
 end
 
 delta_t = 0.1;
@@ -37,51 +37,27 @@ delta_t = 0.1;
 % delta_t = 0.1205;
 global step_global
 % camera motion prediction
-% [Xv_km1_k,v_for_noise,w_for_noise,dq__,dX__] = fv( X_k(1:13,:), delta_t, type, SD_A_component_filter, SD_alpha_component_filter  );
-destination_folder = myCONFIG.PATH.KEYFRAMES_FOLDER;
-destination_velocity_file1 = sprintf('%s/vel_%04d.mat',[destination_folder,'VelocityData'],step_global-1);
-destination_velocity_file2 = sprintf('%s/vel_%04d.mat',[destination_folder,'VelocityData'],step_global);
-  [dX__,dq__,R,State_RANSAC]=Calculate_V_Omega_RANSAC_dr_ye_key(step_global-2,step_global-1);
-load(destination_velocity_file1,'current_v','current_w','time_elapsed');
-
-time_elapsed_1 = time_elapsed;
+[Xv_km1_k,v_for_noise,w_for_noise,dq__,dX__] = fv( X_k(1:13,:), delta_t, type, SD_A_component_filter, SD_alpha_component_filter  );
 
 
-load(destination_velocity_file2,'time_elapsed');
 
-time_elapsed_2 = time_elapsed;
-if time_elapsed_1 == 0 
-    time_elapsed_1 = time_elapsed_2; %% just for the first step
+
+
+
+previous_time_difference = ((time_stamp(1,step_global-1) - time_stamp(1,step_global-2) )/1000);
+if previous_time_difference<0.001
+    previous_time_difference=0.001;
+    disp('Time stamp difference 0 ');
 end
-current_v_ = dX__/time_elapsed_1;
-[a_,u_] = q2au(dq__);
-current_w_ = (a_/time_elapsed_1)*u_;
 
-
-% previous_time_difference = ((time_stamp(1,step_global-1) - time_stamp(1,step_global-2) )/1000);
-% if previous_time_difference<0.001
-%     previous_time_difference=0.001;
-%     disp('Time stamp difference 0 ');
-% end
-% 
-% current_time_difference = ((time_stamp(1,step_global) - time_stamp(1,step_global-1) )/1000);
-% if current_time_difference<0.001
-%     current_time_difference=0.001;
-%     disp('Time stamp difference 0 ');
-% end
-dX__1 = current_v*time_elapsed;
-dq__1 = v2q(current_w*time_elapsed)';
-dq__1 = dq__1/norm(dq__1);
-
-dX__ = current_v_*time_elapsed;
-dq__ = v2q(current_w_*time_elapsed)';
-dq__ = dq__/norm(dq__);
-  [dX__2,dq__2,R,State_RANSAC]=Calculate_V_Omega_RANSAC_dr_ye_key(step_global-1,step_global);
-  [dX__,dq__,R,State_RANSAC]=Calculate_V_Omega_RANSAC_dr_ye_key(step_global-2,step_global-1);
+current_time_difference = ((time_stamp(1,step_global) - time_stamp(1,step_global-1) )/1000);
+if current_time_difference<0.001
+    current_time_difference=0.001;
+    disp('Time stamp difference 0 ');
+end
 u =[dX__;dq__];
-[Xv_km1_k, Xo_x, Xo_u] = odometry_model(X_k(1:13,:), u, time_elapsed);
-dX__-dX__2
-R2e((q2R(dq__2)*q2R(dq__))')*180/pi
+[Xv_km1_k, Xo_x, Xo_u] = odometry_model(X_k(1:13,:), u, current_time_difference);
+
 
 
 
@@ -119,36 +95,34 @@ G = [Xo_u;...
 % [dq_noise,Qe] = e2q((q2e(dq__)));
 % cov_dq = Qe*diag((0.1*q2e(dq__)).^2)*Qe';
 
-% cov_dX = q2R(X_k(4:7))'*diag((0.005/2*[1,0.5,1]).^2);
+% cov_dX = q2R(X_k(4:7))'*diag((0.01/2*[1,1,1]).^2);
 % cov_dX = diag(((1/3)*[0.1;0.1;0.1].*dX__).^2);
 % % [dq_noise,Qe] = e2q((0.24/2*pi/180*[1,0.1,1]));
 % % cov_dq = Qe*diag((0.24/2*pi/180*[1,0.1,1]).^2)*Qe';
+% [dq_noise,Qe] = e2q(q2e(dq__)/3);
+% cov_dq = Qe*diag((q2e(dq__)/3).^2)*Qe';
 
-% error_euler = q2e(dq__);
 
-% [dq_noise,Qe] = e2q(0.5*q2e(dq__)/2);
-% cov_dq = Qe*diag((0.5*q2e(dq__)/2).^2)*Qe';
-
-cov_dX = diag((0.01/(2*3)*[1,1,1]).^2);
-[dq_noise,Qe] = e2q((0.24/2*pi/180*[0,0,0]));
-cov_dq = Qe*diag((0.24/(2)*pi/180*[1,1,1]).^2)*Qe';
-
+% cov_dX = diag((0.01/2*[2,2,2]).^2);
+% cov_dX = diag(((1/3)*[0.1;0.1;0.1].*dX__).^2);
 % [dq_noise,Qe] = e2q((0.24/2*pi/180*[1,1,1]));
-% cov_dq = Qe*diag((0.24/2*pi/180*[1,1,1]).^2)*Qe';
-% 
-% cov_dX = diag((0.01/2*[1,1,1]).^2);
+% % cov_dq = Qe*diag((0.24/2*pi/180*[1,1,1]).^2)*Qe';
+
+
+cov_dX = diag((0.01/2*[1,1,1]).^2);
 % a1 = max((1/3)*0.1*dX__(1),0.01/2);
 % a2 = max((1/3)*0.1*dX__(2),0.01/2);
 % a3 = max((1/3)*0.1*dX__(3),0.01/2);
 % cov_dX = diag(([a1,a2,a3]).^2);
+[dq_noise,Qe] = e2q((0.24/2*pi/180*[1,1,1]));
+cov_dq = Qe*diag((0.24/2*pi/180*[1,1,1]).^2)*Qe';
+% [dq_noise,Qe] = e2q(q2e(dq__)/2);
+% cov_dq = Qe*diag((q2e(dq__)/2).^2)*Qe';
 
 
 
 Pn = [cov_dX ,    zeros(3,4);...
       zeros(4,3), cov_dq   ];
-  
-Pn = bootstrap_cov_calc(step_global-2,step_global-1);
-  
 % Pn = sparse (diag( [linear_acceleration_noise_covariance linear_acceleration_noise_covariance linear_acceleration_noise_covariance...
 %     angular_acceleration_noise_covariance angular_acceleration_noise_covariance angular_acceleration_noise_covariance] ) );
 
@@ -162,6 +136,7 @@ Pn = bootstrap_cov_calc(step_global-2,step_global-1);
 
 
 % Pn = calc_cov_RANSAC_dr_ye(step_global-2,step_global-1);
+% [Pn,q_dpose,T_dpose] = bootstrap_cov_calc(step_global-1,step_global);
 % Jn = [q2R(X_km1_k(4:7)),zeros(3,4);...
 %       zeros(4,3) eye(4) ];
 

@@ -22,6 +22,7 @@ for i=4:nDataSnapshots
     predicted_activity(i) = feature_performance.predicted_activity;
     real_activity(i) = feature_performance.real_activity;
     clear feature_performance
+    i
 end
 figure
 plot(active_features,'r')

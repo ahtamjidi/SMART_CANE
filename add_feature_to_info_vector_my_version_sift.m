@@ -58,6 +58,5 @@ features_info(new_position).R = eye(features_info(new_position).measurement_size
 features_info(new_position).Feature3d_in_code_coordinate = Feature3d_in_code_coordinate;
 features_info(new_position).Descriptor = desc;
 features_info(new_position).last_visible = step;
-features_info(new_position).used = 0;
 
 

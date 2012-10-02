@@ -45,7 +45,7 @@ else
         newFeature = hinv_my_version( uvd(:,i), Xv, cam, initial_rho );
         X_RES = [ X_RES; newFeature ];
         %%% TAMADD - convert depth uncertainty to inverse depth
-        std_rho = (initial_rho)^2*0.1;
+        std_rho = (initial_rho)^2*0.02;
 %         std_rho = 0.25;
         %%%
         P_RES = add_a_feature_covariance_inverse_depth( P_RES, uvd(:,i), Xv, std_pxl, std_rho, cam );

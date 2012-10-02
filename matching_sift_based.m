@@ -52,47 +52,12 @@ chi_095_2 = 5.9915;
 
 
 
-%     eval(['scanNameSIFT1','= sprintf(''','%sFeatureExtractionMatching/SIFT_result%04d.mat','''',',myCONFIG.PATH.DATA_FOLDER,step_global);']);
-%     eval(['RANSAC_RESULT','= sprintf(''','%sRANSAC_pose_shift/RANSAC5_step_%d_%d.mat','''',',myCONFIG.PATH.DATA_FOLDER,step_global-1,step_global);']);
-%     
-%     % end
-%     if ~exist(RANSAC_RESULT,'file')
-%         State_RANSAC = RANSAC_CALC_SAVE_SR4000(step_global-1,step_global); %%% produce the RANSAC reuslt. Basically it should
-%         %%% produce SIFT feature files but just in case I check for the
-%         %%% availablity of those file
-% %         if State_RANSAC ~=1
-% %             dbstop in initialize_features;
-% %         end
-%         
-%     end
-%     if ~exist(scanNameSIFT1)
-%         SIFT_extract_save(myCONFIG,step_global-1,step_global-1)
-%     end
-%     eval(['scanNameSIFT2','= sprintf(''','%sFeatureExtractionMatching/SIFT_result%04d.mat','''',',myCONFIG.PATH.DATA_FOLDER,step_global);']);
-%     
-%     if ~exist(scanNameSIFT2)
-%         SIFT_extract_save(myCONFIG,step_global,step_global)
-%     end
-% 
-% 
-%     load(scanNameSIFT1,'SCAN_SIFT');
-
-
-
-         Dr_Ye_File = [myCONFIG.PATH.KEYFRAMES_FOLDER,'RANSAC_pose_shift_dr_Ye/',...
-        sprintf('RANSAC_RESULT_%d_%d.mat',step_global-1,step_global)];
-    
-    
-    
-%     [T,q,R,varargout]=Calculate_V_Omega_RANSAC_dr_ye(stepPre,stepCurrent)
-    
-%     eval(['scanNameSIFT1','= sprintf(''','%sFeatureExtractionMatching/SIFT_result%04d.mat','''',',myCONFIG.PATH.DATA_FOLDER,step-1);']);
-%     eval(['RANSAC_RESULT','= sprintf(''','%sRANSAC_pose_shift/RANSAC5_step_%d_%d.mat','''',',myCONFIG.PATH.DATA_FOLDER,step-1,step);']);
+    eval(['scanNameSIFT1','= sprintf(''','%sFeatureExtractionMatching/SIFT_result%04d.mat','''',',myCONFIG.PATH.DATA_FOLDER,step_global);']);
+    eval(['RANSAC_RESULT','= sprintf(''','%sRANSAC_pose_shift/RANSAC5_step_%d_%d.mat','''',',myCONFIG.PATH.DATA_FOLDER,step_global-1,step_global);']);
     
     % end
-    if ~exist(Dr_Ye_File,'file')
-%         State_RANSAC = RANSAC_CALC_SAVE_SR4000(step-1,step); %%% produce the RANSAC reuslt. Basically it should
-         [T,q,R,varargout]=Calculate_V_Omega_RANSAC_dr_ye_key(step_global-1,step_global);
+    if ~exist(RANSAC_RESULT,'file')
+        State_RANSAC = RANSAC_CALC_SAVE_SR4000(step_global-1,step_global); %%% produce the RANSAC reuslt. Basically it should
         %%% produce SIFT feature files but just in case I check for the
         %%% availablity of those file
 %         if State_RANSAC ~=1
@@ -100,22 +65,20 @@ chi_095_2 = 5.9915;
 %         end
         
     end
-% op_pset2 'op_pset1','op_pset2','sta','rot','trans','RANSAC_STAT'
-    load(Dr_Ye_File,'RANSAC_STAT')
+    if ~exist(scanNameSIFT1)
+        SIFT_extract_save(myCONFIG,step_global-1,step_global-1)
+    end
+    eval(['scanNameSIFT2','= sprintf(''','%sFeatureExtractionMatching/SIFT_result%04d.mat','''',',myCONFIG.PATH.DATA_FOLDER,step_global);']);
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    if ~exist(scanNameSIFT2)
+        SIFT_extract_save(myCONFIG,step_global,step_global)
+    end
+
+
+    load(scanNameSIFT1,'SCAN_SIFT');
+
+
+
 
 
 
@@ -138,7 +101,7 @@ distRatio = 0.6;
 
 % For each descriptor in the first image, select its match to second image.
 % des2t = des2';                          % Precompute matrix transpose
-des2t = RANSAC_STAT.RawDescriptor2;
+des2t = SCAN_SIFT.Descriptor_RAW;
 des1 = [];
 index_in_info = [];
 discarded_sift_match = 0;
@@ -163,13 +126,13 @@ for i = 1 : size(match_idx,2)
 %         half_search_region_size_x=ceil(4*sqrt(S(1,1)));
         half_search_region_size_x=ceil(3*sqrt(S(1,1)));
     end
-    dist = norm( RANSAC_STAT.RawFrames2(1:2,match_idx(2,i)) -features_info(index_in_info(match_idx(1,i))).h' );
+    dist = norm( SCAN_SIFT.SCALE_ORIENT_POS_RAW(1:2,match_idx(2,i)) -features_info(index_in_info(match_idx(1,i))).h' );
     if( dist <= half_search_region_size_x )
         features_info(index_in_info(match_idx(1,i))).individually_compatible = 1;
-        features_info(index_in_info(match_idx(1,i))).z =  RANSAC_STAT.RawFrames2(1:2,match_idx(2,i));
+        features_info(index_in_info(match_idx(1,i))).z = SCAN_SIFT.SCALE_ORIENT_POS_RAW(1:2,match_idx(2,i));
         features_info(index_in_info(match_idx(1,i))).last_visible = step_global;
         %%% update the descriptor
-        features_info(index_in_info(match_idx(1,i))).Descriptor = RANSAC_STAT.RawDescriptor2(:,match_idx(2,i));
+        features_info(index_in_info(match_idx(1,i))).Descriptor = SCAN_SIFT.Descriptor_RAW(:,match_idx(2,i));
         
         debugInnov = features_info(index_in_info(match_idx(1,i))).z - features_info(index_in_info(match_idx(1,i))).h' ;
         if isempty(MaxInnov)

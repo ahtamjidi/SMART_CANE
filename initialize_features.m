@@ -68,22 +68,15 @@ end
 % end
 % if myCONFIG.FLAGS.ORIGINAL_DATASET
 
- 
+
 if strcmp(myCONFIG.FLAGS.FEATURE_EXTRACTOR,'SIFT')
-     Dr_Ye_File = [myCONFIG.PATH.KEYFRAMES_FOLDER,'RANSAC_pose_shift_dr_Ye/',...
-        sprintf('RANSAC_RESULT_%d_%d.mat',step-1,step)];
     
-    
-    
-%     [T,q,R,varargout]=Calculate_V_Omega_RANSAC_dr_ye(stepPre,stepCurrent)
-    
-%     eval(['scanNameSIFT1','= sprintf(''','%sFeatureExtractionMatching/SIFT_result%04d.mat','''',',myCONFIG.PATH.DATA_FOLDER,step-1);']);
-%     eval(['RANSAC_RESULT','= sprintf(''','%sRANSAC_pose_shift/RANSAC5_step_%d_%d.mat','''',',myCONFIG.PATH.DATA_FOLDER,step-1,step);']);
+    eval(['scanNameSIFT1','= sprintf(''','%sFeatureExtractionMatching/SIFT_result%04d.mat','''',',myCONFIG.PATH.DATA_FOLDER,step-1);']);
+    eval(['RANSAC_RESULT','= sprintf(''','%sRANSAC_pose_shift/RANSAC5_step_%d_%d.mat','''',',myCONFIG.PATH.DATA_FOLDER,step-1,step);']);
     
     % end
-    if ~exist(Dr_Ye_File,'file')
-%         State_RANSAC = RANSAC_CALC_SAVE_SR4000(step-1,step); %%% produce the RANSAC reuslt. Basically it should
-         [T,q,R,varargout]=Calculate_V_Omega_RANSAC_dr_ye_key(step-1,step);
+    if ~exist(RANSAC_RESULT,'file')
+        State_RANSAC = RANSAC_CALC_SAVE_SR4000(step-1,step); %%% produce the RANSAC reuslt. Basically it should
         %%% produce SIFT feature files but just in case I check for the
         %%% availablity of those file
 %         if State_RANSAC ~=1
@@ -91,17 +84,19 @@ if strcmp(myCONFIG.FLAGS.FEATURE_EXTRACTOR,'SIFT')
 %         end
         
     end
-% op_pset2 'op_pset1','op_pset2','sta','rot','trans','RANSAC_STAT'
-    load(Dr_Ye_File,'op_pset2','RANSAC_STAT')
+    if ~exist(scanNameSIFT1)
+        SIFT_extract_save(myCONFIG,step-1,step-1)
+    end
+    eval(['scanNameSIFT2','= sprintf(''','%sFeatureExtractionMatching/SIFT_result%04d.mat','''',',myCONFIG.PATH.DATA_FOLDER,step);']);
     
-%     RANSAC_STAT.GoodFrames1 = frm1(:, op_match(1, :));
-% RANSAC_STAT.GoodDescriptor1 = des1(:, op_match(1, :));
-    
-    
-    
-    UV_GoodFeaturesToInitialize = RANSAC_STAT.GoodFrames2(1:2,:)'; %%% For Knn we need the observations to be row vectors
-    XYZ_GoodFeaturesToInitialize = op_pset2; %%%
-    DESCRIPTOR_GoodFeaturesToInitialize = RANSAC_STAT.GoodDescriptor1;
+    if ~exist(scanNameSIFT2)
+        SIFT_extract_save(myCONFIG,step,step)
+    end
+    load(scanNameSIFT1,'SCAN_SIFT');
+    load(RANSAC_RESULT,'matches')
+    UV_GoodFeaturesToInitialize = SCAN_SIFT.SCALE_ORIENT_POS(1:2,matches(1,:))'; %%% For Knn we need the observations to be row vectors
+    XYZ_GoodFeaturesToInitialize = SCAN_SIFT.XYZ_DATA(:,matches(1,:)); %%%
+    DESCRIPTOR_GoodFeaturesToInitialize = SCAN_SIFT.Descriptor(:,matches(1,:));
 %     NS = createns(UV_GoodFeaturesToInitialize); %% the input to createns should be in this way X=[[u1,v1];[u2,v2],...] each data in a row
 NS = []; %% I commented the above line in soonhac's computer and after all in the current version I am not using the NS
     %%% this is a kd-tree that later will be used to find the closest extracted
@@ -153,51 +148,3 @@ end
 %     [ filter, features_info, uv ] = initialize_n_features_sift( step, cam, im, filter, features_info );
 
 %%% MODIFIED CODE END
-
-
-
-% if strcmp(myCONFIG.FLAGS.FEATURE_EXTRACTOR,'SIFT')
-%      Dr_Ye_File = [myCONFIG.PATH.SOURCE_FOLDER,'/RANSAC_pose_shift_dr_Ye/',...
-%         sprintf('RANSAC_RESULT_%d_%d.mat',step-1,step)];
-%     
-%     
-%     
-%     [T,q,R,varargout]=Calculate_V_Omega_RANSAC_dr_ye(stepPre,stepCurrent)
-%     
-%     eval(['scanNameSIFT1','= sprintf(''','%sFeatureExtractionMatching/SIFT_result%04d.mat','''',',myCONFIG.PATH.DATA_FOLDER,step-1);']);
-%     eval(['RANSAC_RESULT','= sprintf(''','%sRANSAC_pose_shift/RANSAC5_step_%d_%d.mat','''',',myCONFIG.PATH.DATA_FOLDER,step-1,step);']);
-%     
-%     % end
-%     if ~exist(RANSAC_RESULT,'file')
-%         State_RANSAC = RANSAC_CALC_SAVE_SR4000(step-1,step); %%% produce the RANSAC reuslt. Basically it should
-%         %%% produce SIFT feature files but just in case I check for the
-%         %%% availablity of those file
-% %         if State_RANSAC ~=1
-% %             dbstop in initialize_features;
-% %         end
-%         
-%     end
-%     if ~exist(scanNameSIFT1)
-%         SIFT_extract_save(myCONFIG,step-1,step-1)
-%     end
-%     eval(['scanNameSIFT2','= sprintf(''','%sFeatureExtractionMatching/SIFT_result%04d.mat','''',',myCONFIG.PATH.DATA_FOLDER,step);']);
-%     
-%     if ~exist(scanNameSIFT2)
-%         SIFT_extract_save(myCONFIG,step,step)
-%     end
-%     load(scanNameSIFT1,'SCAN_SIFT');
-%     load(RANSAC_RESULT,'matches')
-%     UV_GoodFeaturesToInitialize =
-%     SCAN_SIFT.SCALE_ORIENT_POS(1:2,matches(1,:))'; %%% For Knn we need the observations to be row vectors
-%     XYZ_GoodFeaturesToInitialize = SCAN_SIFT.XYZ_DATA(:,matches(1,:)); %%%
-%     DESCRIPTOR_GoodFeaturesToInitialize = SCAN_SIFT.Descriptor(:,matches(1,:));
-% %     NS = createns(UV_GoodFeaturesToInitialize); %% the input to createns should be in this way X=[[u1,v1];[u2,v2],...] each data in a row
-% NS = []; %% I commented the above line in soonhac's computer and after all in the current version I am not using the NS
-%     %%% this is a kd-tree that later will be used to find the closest extracted
-%     %%% feature to a random pixel. We do not need to recalculate it each time
-%     %%% for a step after we do it here.
-% end
-
-
-
-

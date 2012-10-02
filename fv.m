@@ -44,7 +44,7 @@ if step_global-1<=1
     R = eye(3);
     State_RANSAC =1;
 else
-  [dX_gt,dq_calc,R,State_RANSAC]=Calculate_V_Omega_RANSAC_dr_ye(step_global-2,step_global-1);
+  [dX_gt,dq_calc,R,State_RANSAC]=Calculate_V_Omega_RANSAC_dr_ye(step_global-1,step_global);
 end
 
 

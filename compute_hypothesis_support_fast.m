@@ -67,7 +67,8 @@ if ~isempty(z_id)
     
     nu = z_id - h_distorted;
     residuals = sqrt(nu(1,:).^2+nu(2,:).^2);
-    positions_li_inliers_id = residuals<(min(residuals)+threshold);
+%     positions_li_inliers_id = residuals<(median(residuals)+threshold);
+    positions_li_inliers_id = residuals<threshold;
     hypothesis_support = hypothesis_support + sum(positions_li_inliers_id);
     
 else
@@ -106,7 +107,8 @@ if ~isempty(z_euc)
     
     nu = z_euc - h_distorted;
     residuals = sqrt(nu(1,:).^2+nu(2,:).^2);
-    positions_li_inliers_euc = residuals<threshold;
+%     positions_li_inliers_euc = residuals<(median(residuals)+threshold);
+positions_li_inliers_euc = residuals<threshold;
     hypothesis_support = hypothesis_support + sum(positions_li_inliers_euc);
     
 else

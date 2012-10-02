@@ -30,6 +30,11 @@ function [ filter, features_info ] = map_management( filter,...
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % delete features, if necessary
+if ~isempty(features_info)
+feature_visible = (length([features_info.h])/2);
+else
+    feature_visible=0;
+end
 [ filter, features_info ] = delete_features( filter, features_info ,step);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -38,7 +43,11 @@ measured = 0;
 for i=1:length(features_info)
     if (features_info(i).low_innovation_inlier || features_info(i).high_innovation_inlier) measured = measured + 1; end
 end
-
+if measured~=0
+feature_ratio = feature_visible/measured;
+else
+    feature_ratio = 4
+end
 % update features info
 features_info = update_features_info( features_info );
 
@@ -55,13 +64,14 @@ features_info = update_features_info( features_info );
 %%% map
 %   [ filter, features_info ] = initialize_features( step, cam,...
 %         filter, features_info, min_number_of_features_in_image, im );
+
 if measured == 0
     [ filter, features_info ] = initialize_features( step, cam,...
-        filter, features_info, min_number_of_features_in_image, im );
+        filter, features_info, 4*min_number_of_features_in_image, im );
 else
     if measured < min_number_of_features_in_image
         [ filter, features_info ] = initialize_features( step, cam,...
-            filter, features_info, min_number_of_features_in_image - measured, im );
+            filter, features_info, 4*(min_number_of_features_in_image - measured), im );
     end
 end
 %%
